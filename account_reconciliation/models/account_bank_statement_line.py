@@ -38,7 +38,7 @@ class AccountBankStatementLine(models.Model):
 
     def action_save_new(self):
         action = self.env['ir.actions.act_window']._for_xml_id(
-            'export_reconciliation.action_bank_statement_line_form_bank_rec_widget'
+            'account_reconciliation.action_bank_statement_line_form_bank_reconciliation_widget'
         )
 
         action['context'] = {
