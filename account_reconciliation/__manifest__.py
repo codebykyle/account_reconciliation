@@ -10,7 +10,11 @@
         'account',
         'account_statement_base',
     ],
-    'data': [],
+    'data': [
+        'security/ir.model.access.csv',
+        'views/views_account_account.xml',
+        'views/menu_account_reconciliation.xml',
+    ],
     'installable': True,
     'application': False,
     'auto_install': False,

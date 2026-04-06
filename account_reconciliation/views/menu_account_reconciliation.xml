@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <menuitem
+            id="menu_account_reconciliation"
+            name="Reconcile"
+            parent="account.account_closing_menu"
+            action="action_move_line_posted_unreconciled"
+            sequence="65"
+            groups="account.group_account_user"/>
+</odoo>

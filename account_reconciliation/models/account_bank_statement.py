@@ -2,6 +2,8 @@ from odoo import _, api, models
 
 
 class AccountBankStatement(models.Model):
+    """Extends ``account.bank.statement`` with reconciliation actions and PDF generation."""
+
     _inherit = [
         'mail.thread.main.attachment',
         'account.bank.statement'
@@ -10,6 +12,7 @@ class AccountBankStatement(models.Model):
     _name = 'account.bank.statement'
 
     def action_open_bank_reconcile_widget(self):
+        """Open the bank reconciliation widget scoped to this statement's lines."""
         self.ensure_one()
 
         return self.env['account.bank.statement.line']._action_open_bank_reconciliation_widget(
@@ -24,6 +27,7 @@ class AccountBankStatement(models.Model):
         )
 
     def action_open_journal_invalid_statements(self):
+        """Open the invalid-statement list filtered to the current journal."""
         self.ensure_one()
 
         return {
@@ -38,6 +42,10 @@ class AccountBankStatement(models.Model):
         }
 
     def action_generate_attachment(self):
+        """Render the bank statement report as PDF and attach it to each statement.
+
+        :returns: report action for the current recordset.
+        """
         report_service = self.env['ir.actions.report'].sudo()
         report_action = self.env.ref('account.action_report_account_statement').sudo()
         attachment_model = self.env['ir.attachment']
@@ -63,17 +71,25 @@ class AccountBankStatement(models.Model):
 
             statement.attachment_ids |= attachment
 
-        return report_action.report_action(docids=self)
+        return report_action.report_action(
+            docids=self
+        )
 
     @api.model_create_multi
     def create(self, vals_list):
+        """Create statements and auto-generate PDF attachments for complete ones.
+
+        Skips PDF generation when ``skip_pdf_attachment_generation`` is in context.
+        """
         statements = super().create(vals_list)
 
         if self.env.context.get('skip_pdf_attachment_generation'):
             return statements
 
         statements_to_attach = statements.filtered(
-            lambda statement: statement.is_complete and not self._has_pdf_attachment(statement)
+            lambda statement: statement.is_complete and not self._has_pdf_attachment(
+                statement
+            )
         )
 
         if statements_to_attach:
@@ -83,6 +99,7 @@ class AccountBankStatement(models.Model):
 
     @staticmethod
     def _has_pdf_attachment(statement):
+        """Return ``True`` if the statement already has a PDF attachment."""
         return any(
             attachment.mimetype == 'application/pdf'
             for attachment in statement.attachment_ids
